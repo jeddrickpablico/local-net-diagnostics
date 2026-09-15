@@ -1,5 +1,7 @@
 # Ignore raw data files so we don't accidentally push sensitive local IPs or clutter the repo
 *.log
 raw_output.txt
-__pyache__/
 *.json
+
+# Ignore Python cache directories (these auto-generate and shouldn't be tracked)
+__pycache__/
