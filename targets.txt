@@ -1,5 +1,16 @@
+# Local Lab Targets for Connectivity Testing
+
+# My Active Directory Server
 192.168.2.91
+
+# Ubuntu VM
 192.168.2.97
+
+# Google
 8.8.8.8
+
+# Random non-working IP
 192.0.2.1
+
+# Default Gateway
 192.168.2.1

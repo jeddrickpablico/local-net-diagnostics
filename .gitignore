@@ -1,3 +1,4 @@
+# Ignore raw data files so we don't accidentally push sensitive local IPs or clutter the repo
 *.log
 raw_output.txt
 __pyache__/
