@@ -1,0 +1,4 @@
+*.log
+raw_output.txt
+__pyache__/
+*.json
