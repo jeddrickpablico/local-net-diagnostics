@@ -4,11 +4,11 @@
 RAW_FILE="raw_output.txt"
 TARGETS="targets.txt"
 
-echo "Timestamp: $(date)" >> "$RAW_FILE"
+# BUG FIX: The script kept endlessly appending old data with '>>'.
+# FIX: Used a single '>' on the first echo to wipe the file fresh on every run.
+echo "Timestamp: $(date)" > "$RAW_FILE"
 echo "=== PING TESTS ===" >> "$RAW_FILE"
 
-# BUG FIX: The for-loop broke on comments and took too long on offline IPs.
-# FIX: I am using a while read loop to process the file line by line.
 while read -r line; do
 
     # Step 1: Skip the line if it is completely empty
@@ -21,14 +21,16 @@ while read -r line; do
         continue
     fi
 
-    # Step 3: Use awk to extract just the first column (the IP address).
-    # This ensures any inline comments after the IP are ignored.
+    # Step 3: Use awk to extract just the first column (the IP address)
     target=$(echo "$line" | awk '{print $1}')
 
-    # Step 4: Ping the isolated target.
-    # FIX: Added -W 1 so the ping times out after 1 second per packet.
-    # This stops the script from hanging indefinitely on dead targets.
+    # Step 4: Ping the isolated target with a 1-second timeout
     ping -c 3 -W 1 "$target" >> "$RAW_FILE" 2>&1
     echo "---" >> "$RAW_FILE"
 
 done < "$TARGETS"
+
+# NEW FEATURE: Adding local port scanning
+echo "=== LOCAL OPEN PORTS ===" >> "$RAW_FILE"
+# -t = TCP only, -l = listening ports only, -n = numeric
+ss -tln >> "$RAW_FILE"
