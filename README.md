@@ -1,18 +1,37 @@
-# Local Network Diagnostic Pipeline
+# local-net-diagnostics
 
-A lightweight Bash and Python project to check host reachability and open ports across my virtual lab machines. 
+A small tool to track ping latency, packet loss, and listening ports across VMs in my home lab. A Bash script gathers the raw diagnostic output, and a Python script reads, parses, and structures the data.
 
-The goal is to collect raw network test data using a shell script, then use Python to parse the results and highlight connection drops.
+## Todo / Roadmap
 
-## Current Progress & Next Steps
-- [x] Initialize repository and configure `.gitignore`
-- [x] Create Bash probe to ping lab IPs and handle timeout/comment issues (`collect_data.sh`)
-- [ ] Add local listening port checks with `ss -tln`
-- [ ] Build Python parser to extract latency and packet loss (`analyze_data.py`)
-- [ ] Generate structured JSON reports and log unreachable hosts
+- [x] Initial repo setup and target host inventory
+- [x] Bash collector with timeout flags and comment filtering (`collect_data.sh`)
+- [x] Active socket checks (`ss -tln`) and log reset logic
+- [x] Safe log ingestion and missing-file handling (`analyze_data.py`)
+- [ ] Parse ping stats and open ports using regex (handle edge-case outputs)
+- [ ] Clean up metrics and export to structured JSON
+- [ ] Automate periodic runs using cron
+- [ ] Add basic alerting for dropped hosts
 
-## How to Run (Work in Progress)
+## How to Run
+
 ```bash
-# Make collector executable and run
+# 1. Run the collector
 chmod +x collect_data.sh
 ./collect_data.sh
+
+# 2. Run the parser
+python3 analyze_data.py
+```
+
+## Issues Encountered & Fixes
+
+Notes on real-world bugs hit during testing and how they were resolved:
+
+| Area | What Happened | The Fix |
+| :--- | :--- | :--- |
+| **Target Parsing** (`collect_data.sh`) | A basic `for target in $(cat targets.txt)` loop split lines on spaces, trying to ping individual words in comments (like `#` and `Local`) and throwing DNS errors. | Switched to `while read -r` and used `awk '{print $1}'` to isolate the IP address and skip comment lines. |
+| **Ping Hangs** (`collect_data.sh`) | The script took too long on offline or firewalled lab IPs because the default ping waited too long for dropped packets. | Added `-W 1` to enforce a 1-second timeout per probe so the loop moves along quickly. |
+| **Log Growth** (`raw_output.txt`) | Using `>>` for every command caused test data to stack up on every run, making the log file huge. | Changed the first timestamp write to `>` so the file clears fresh on every new execution. |
+| **Port Visibility** (`collect_data.sh`) | The script only tested reachability, leaving zero visibility into what was actually running on the machine. | Added `ss -tln` to dump active local TCP sockets without waiting on reverse DNS lookups. |
+| **Missing Log File** (`analyze_data.py`) | Running the Python script before running the Bash collector threw an unhandled `FileNotFoundError` crash. | Wrapped the file open in `try / except FileNotFoundError` to print a reminder to run `collect_data.sh` first, then cleanly exited with `sys.exit(1)`. |

@@ -1,14 +1,25 @@
-# Initial baseline: direct file read
+import sys
+
 INPUT_FILE = "raw_output.txt"
 
 def load_raw_data(filepath):
-    with open(filepath, "r") as file:
-        return file.readlines()
+    """
+    Safely reads raw network output.
+    Exits cleanly if the collector has not yet been executed.
+    """
+    try:
+        with open(filepath, "r") as file:
+            return file.readlines()
+    except FileNotFoundError:
+        print(f"[ERROR] '{filepath}' was not found.")
+        print("[HINT] Run './collect_data.sh' first to generate diagnostic logs.")
+        sys.exit(1)
 
 def main():
-    print(f"Reading {INPUT_FILE}...")
-    lines = load_raw_data(INPUT_FILE)
-    print(f"Read {len(lines)} lines successfully.")
+    print(f"[*] Loading network diagnostics from '{INPUT_FILE}'...")
+    raw_lines = load_raw_data(INPUT_FILE)
+    print(f"[+] Loaded {len(raw_lines)} lines of raw data.")
+    print("[*] Ready for metric parsing.")
 
 if __name__ == "__main__":
     main()
