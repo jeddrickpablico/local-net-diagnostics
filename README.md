@@ -8,7 +8,7 @@ A small tool to track ping latency, packet loss, and listening ports across VMs 
 - [x] Bash collector with timeout flags and comment filtering (`collect_data.sh`)
 - [x] Active socket checks (`ss -tln`) and log reset logic
 - [x] Safe log ingestion and missing-file handling (`analyze_data.py`)
-- [ ] Parse ping stats and open ports using regex (handle edge-case outputs)
+- [x] Parse ping stats and open ports using regex (handle edge-case outputs)
 - [ ] Clean up metrics and export to structured JSON
 - [ ] Automate periodic runs using cron
 - [ ] Add basic alerting for dropped hosts
@@ -35,3 +35,4 @@ Notes on real-world bugs hit during testing and how they were resolved:
 | **Log Growth** (`raw_output.txt`) | Using `>>` for every command caused test data to stack up on every run, making the log file huge. | Changed the first timestamp write to `>` so the file clears fresh on every new execution. |
 | **Port Visibility** (`collect_data.sh`) | The script only tested reachability, leaving zero visibility into what was actually running on the machine. | Added `ss -tln` to dump active local TCP sockets without waiting on reverse DNS lookups. |
 | **Missing Log File** (`analyze_data.py`) | Running the Python script before running the Bash collector threw an unhandled `FileNotFoundError` crash. | Wrapped the file open in `try / except FileNotFoundError` to print a reminder to run `collect_data.sh` first, then cleanly exited with `sys.exit(1)`. |
+| **Metric Extraction** (`analyze_data.py`) | Basic string splitting (`.split("%")` and `.split("time=")`) broke when VirtualBox VMs returned decimal packet loss (`0.0%` instead of `0%`) and threw `IndexError` crashes on offline hosts where `time=` never appeared in the output. | Swapped string splitting for `re.search()`. Used `r"(\d+(?:\.\d+)?)%\s*packet loss"` to catch both integer and decimal loss, and matched latency safely so missing strings on offline targets evaluate to `None` instead of crashing. |
