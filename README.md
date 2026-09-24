@@ -9,7 +9,7 @@ A small tool to track ping latency, packet loss, and listening ports across VMs 
 - [x] Active socket checks (`ss -tln`) and log reset logic
 - [x] Safe log ingestion and missing-file handling (`analyze_data.py`)
 - [x] Parse ping stats and open ports using regex (handle edge-case outputs)
-- [ ] Clean up metrics and export to structured JSON
+- [x] Clean up metrics and export to structured JSON
 - [ ] Automate periodic runs using cron
 - [ ] Add basic alerting for dropped hosts
 
